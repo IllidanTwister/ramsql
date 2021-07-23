@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/proullon/ramsql/engine/log"
-	"github.com/proullon/ramsql/engine/parser"
-	"github.com/proullon/ramsql/engine/protocol"
+	"github.com/IllidanTwister/ramsql/engine/log"
+	"github.com/IllidanTwister/ramsql/engine/parser"
+	"github.com/IllidanTwister/ramsql/engine/protocol"
 )
 
 /*
@@ -42,26 +42,30 @@ func updateExecutor(e *Engine, updateDecl *parser.Decl, conn protocol.EngineConn
 	}
 
 	// Where decl
-	predicates, err := whereExecutor(updateDecl.Decl[2], r.table.name)
+	predicate, err := whereExecutor2(e, updateDecl.Decl[2].Decl, r.table.name)
 	if err != nil {
 		return err
 	}
 
-	var ok, res bool
 	for i := range r.rows {
-		ok = true
+		// create virtualrow
+		row := make(virtualRow)
+		for index := range r.rows[i].Values {
+			v := Value{
+				v:      r.rows[i].Values[index],
+				valid:  true,
+				lexeme: r.table.attributes[index].name,
+				table:  r.table.name,
+			}
+			row[v.table+"."+v.lexeme] = v
+		}
 		// If the row validate all predicates, write it
-		for _, predicate := range predicates {
-			if res, err = predicate.Evaluate(r.rows[i], r.table); err != nil {
-				return err
-			}
-			if res == false {
-				ok = false
-				continue
-			}
+		res, err := predicate.Eval(row)
+		if err != nil {
+			return err
 		}
 
-		if ok {
+		if res {
 			num++
 			err = updateValues(r, i, values)
 			if err != nil {

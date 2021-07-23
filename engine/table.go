@@ -3,8 +3,8 @@ package engine
 import (
 	"fmt"
 
-	"github.com/proullon/ramsql/engine/parser"
-	"github.com/proullon/ramsql/engine/protocol"
+	"github.com/IllidanTwister/ramsql/engine/parser"
+	"github.com/IllidanTwister/ramsql/engine/protocol"
 )
 
 // Table is defined by a name and attributes

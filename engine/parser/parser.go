@@ -6,7 +6,7 @@ package parser
 import (
 	"fmt"
 
-	"github.com/proullon/ramsql/engine/log"
+	"github.com/IllidanTwister/ramsql/engine/log"
 )
 
 // The parser structure holds the parser's internal state.
@@ -394,7 +394,12 @@ func (p *parser) parseWhere(selectDecl *Decl) error {
 			break
 		}
 
-		attributeDecl, err := p.parseCondition()
+		var attributeDecl *Decl
+		if p.is(BracketOpeningToken) {
+			attributeDecl, err = p.parseBracket()
+		} else {
+			attributeDecl, err = p.parseCondition()
+		}
 		if err != nil {
 			return err
 		}
@@ -413,6 +418,54 @@ func (p *parser) parseWhere(selectDecl *Decl) error {
 	}
 
 	return nil
+}
+
+func (p *parser) parseBracket() (*Decl, error) {
+	openDecl, err := p.consumeToken(BracketOpeningToken)
+	if err != nil {
+		return nil, err
+	}
+	gotClause := false
+	for {
+		if !p.hasNext() && gotClause {
+			break
+		}
+
+		if p.is(BracketClosingToken) {
+			break
+		}
+
+		var attributeDecl *Decl
+		if p.is(BracketOpeningToken) {
+			attributeDecl, err = p.parseBracket()
+		} else {
+			attributeDecl, err = p.parseCondition()
+		}
+
+		if err != nil {
+			return nil, err
+		}
+		openDecl.Add(attributeDecl)
+
+		if p.is(AndToken, OrToken) {
+			linkDecl, err := p.consumeToken(p.cur().Token)
+			if err != nil {
+				return nil, err
+			}
+			openDecl.Add(linkDecl)
+		}
+
+		// Got at least one clause
+		gotClause = true
+	}
+	if !gotClause {
+		return nil, fmt.Errorf("parseBracket: empty () without content")
+	}
+	_, err = p.consumeToken(BracketClosingToken)
+	if err != nil {
+		return nil, err
+	}
+	return openDecl, nil
 }
 
 // parseBuiltinFunc looks for COUNT,MAX,MIN
@@ -510,7 +563,7 @@ func (p *parser) parseQuotedToken() (*Decl, error) {
 	quoted := false
 	quoteToken := DoubleQuoteToken
 
-	if p.is(DoubleQuoteToken) || p.is(BacktickToken){
+	if p.is(DoubleQuoteToken) || p.is(BacktickToken) {
 		quoted = true
 		quoteToken = p.cur().Token
 		if err := p.next(); err != nil {
@@ -630,7 +683,6 @@ func (p *parser) parseIn() (*Decl, error) {
 		}
 		inDecl.Add(v)
 		gotList = true
-
 		if p.is(BracketClosingToken) {
 			if gotList == false {
 				return nil, fmt.Errorf("IN clause: empty list of value")
@@ -638,7 +690,6 @@ func (p *parser) parseIn() (*Decl, error) {
 			p.consumeToken(BracketClosingToken)
 			break
 		}
-
 		_, err = p.consumeToken(CommaToken)
 		if err != nil {
 			return nil, err
@@ -848,11 +899,12 @@ func (p *parser) consumeToken(tokenTypes ...int) (*Decl, error) {
 
 func (p *parser) syntaxError() error {
 	if p.index == 0 {
-		return fmt.Errorf("Syntax error near %v %v", p.tokens[p.index].Lexeme, p.tokens[p.index+1].Lexeme)
+		return fmt.Errorf("Syntax error near1 %v %v", p.tokens[p.index].Lexeme, p.tokens[p.index+1].Lexeme)
 	} else if !p.hasNext() {
-		return fmt.Errorf("Syntax error near %v %v", p.tokens[p.index-1].Lexeme, p.tokens[p.index].Lexeme)
+		return fmt.Errorf("Syntax error near2 %v %v", p.tokens[p.index-1].Lexeme, p.tokens[p.index].Lexeme)
 	}
-	return fmt.Errorf("Syntax error near %v %v %v", p.tokens[p.index-1].Lexeme, p.tokens[p.index].Lexeme, p.tokens[p.index+1].Lexeme)
+	return fmt.Errorf("Syntax error near3 %v %v %v", p.tokens[p.index-1].Lexeme, p.tokens[p.index].Lexeme,
+		p.tokens[p.index+1].Lexeme)
 }
 
 func stripSpaces(t []Token) (ret []Token) {

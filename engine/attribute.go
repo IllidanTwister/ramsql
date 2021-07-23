@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/proullon/ramsql/engine/log"
-	"github.com/proullon/ramsql/engine/parser"
+	"github.com/IllidanTwister/ramsql/engine/log"
+	"github.com/IllidanTwister/ramsql/engine/parser"
 )
 
 // Domain is the set of allowable values for an Attribute.

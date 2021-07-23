@@ -7,8 +7,8 @@ import (
 	"io"
 	"sync"
 
-	"github.com/proullon/ramsql/engine/log"
-	"github.com/proullon/ramsql/engine/parser"
+	"github.com/IllidanTwister/ramsql/engine/log"
+	"github.com/IllidanTwister/ramsql/engine/parser"
 )
 
 // Rows implements the sql/driver Rows interface

@@ -1,8 +1,8 @@
 package engine
 
 import (
-	"github.com/proullon/ramsql/engine/log"
-	"github.com/proullon/ramsql/engine/protocol"
+	"github.com/IllidanTwister/ramsql/engine/log"
+	"github.com/IllidanTwister/ramsql/engine/protocol"
 )
 
 type limit struct {

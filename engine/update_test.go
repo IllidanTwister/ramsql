@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/proullon/ramsql/engine/log"
+	"github.com/IllidanTwister/ramsql/engine/log"
 
-	_ "github.com/proullon/ramsql/driver"
+	_ "github.com/IllidanTwister/ramsql/driver"
 )
 
 func TestUpdateSimple(t *testing.T) {
@@ -34,7 +34,12 @@ func TestUpdateSimple(t *testing.T) {
 		t.Fatalf("Cannot insert into table account: %s", err)
 	}
 
-	_, err = db.Exec("UPDATE account SET email = 'roger@gmail.com' WHERE id = 2")
+	_, err = db.Exec("UPDATE account SET email = 'kiki@gmail.com' WHERE id = 1")
+	if err != nil {
+		t.Fatalf("Cannot update table account: %s", err)
+	}
+
+	_, err = db.Exec("UPDATE account SET email = 'roger@gmail.com' WHERE (id = 2)")
 	if err != nil {
 		t.Fatalf("Cannot update table account: %s", err)
 	}

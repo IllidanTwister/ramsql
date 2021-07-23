@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/proullon/ramsql/engine/log"
+	"github.com/IllidanTwister/ramsql/engine/log"
 )
 
 func TestCreateTable(t *testing.T) {
@@ -305,7 +305,7 @@ func TestCompareDateGT(t *testing.T) {
 
 	query := "SELECT dat FROM comp WHERE dat > '2018-03-03'"
 
-	rows, err := db.Query(query, )
+	rows, err := db.Query(query)
 	if err != nil {
 		t.Fatalf("sql.Query: %s", err)
 	}
@@ -362,7 +362,7 @@ func TestCompareDateLT(t *testing.T) {
 
 	query := "SELECT dat FROM comp WHERE dat < '2019-03-03'"
 
-	rows, err := db.Query(query, )
+	rows, err := db.Query(query)
 	if err != nil {
 		t.Fatalf("sql.Query: %s", err)
 	}

@@ -2,8 +2,8 @@ package engine
 
 import (
 	"fmt"
-	"github.com/proullon/ramsql/engine/log"
-	"github.com/proullon/ramsql/engine/parser"
+	"github.com/IllidanTwister/ramsql/engine/log"
+	"github.com/IllidanTwister/ramsql/engine/parser"
 	"strconv"
 	"time"
 )
@@ -36,7 +36,7 @@ func convToDate(t interface{}) (time.Time, error) {
 		log.Debug("convToDate> unexpected type %T\n", t)
 		return time.Time{}, fmt.Errorf("unexpected internal type %T", t)
 	case string:
-		d, err :=parser.ParseDate(string(t))
+		d, err := parser.ParseDate(string(t))
 		if err != nil {
 			return time.Time{}, fmt.Errorf("cannot parse date %v", t)
 		}

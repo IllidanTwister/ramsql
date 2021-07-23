@@ -4,9 +4,9 @@ import (
 	// "errors"
 	"fmt"
 
-	"github.com/proullon/ramsql/engine/log"
-	"github.com/proullon/ramsql/engine/parser"
-	"github.com/proullon/ramsql/engine/protocol"
+	"github.com/IllidanTwister/ramsql/engine/log"
+	"github.com/IllidanTwister/ramsql/engine/parser"
+	"github.com/IllidanTwister/ramsql/engine/protocol"
 )
 
 func deleteExecutor(e *Engine, deleteDecl *parser.Decl, conn protocol.EngineConn) error {
@@ -21,16 +21,16 @@ func deleteExecutor(e *Engine, deleteDecl *parser.Decl, conn protocol.EngineConn
 	}
 
 	// get WHERE declaration
-	predicates, err := whereExecutor(deleteDecl.Decl[1], tables[0].name)
+	predicate, err := whereExecutor2(e, deleteDecl.Decl[1].Decl, tables[0].name)
 	if err != nil {
 		return err
 	}
 
 	// and delete
-	return deleteRows(e, tables, conn, predicates)
+	return deleteRows(e, tables, conn, predicate)
 }
 
-func deleteRows(e *Engine, tables []*Table, conn protocol.EngineConn, predicates []Predicate) error {
+func deleteRows(e *Engine, tables []*Table, conn protocol.EngineConn, predicate PredicateLinker) error {
 	var rowsDeleted int64
 
 	r := e.relation(tables[0].name)
@@ -40,23 +40,26 @@ func deleteRows(e *Engine, tables []*Table, conn protocol.EngineConn, predicates
 	r.Lock()
 	defer r.Unlock()
 
-	var ok, res bool
-	var err error
 	lenRows := len(r.rows)
 	for i := 0; i < lenRows; i++ {
-		ok = true
+		// create virtualrow
+		row := make(virtualRow)
+		for index := range r.rows[i].Values {
+			v := Value{
+				v:      r.rows[i].Values[index],
+				valid:  true,
+				lexeme: r.table.attributes[index].name,
+				table:  r.table.name,
+			}
+			row[v.table+"."+v.lexeme] = v
+		}
 		// If the row validate all predicates, write it
-		for _, predicate := range predicates {
-			if res, err = predicate.Evaluate(r.rows[i], r.table); err != nil {
-				return err
-			}
-			if res == false {
-				ok = false
-				continue
-			}
+		res, err := predicate.Eval(row)
+		if err != nil {
+			return err
 		}
 
-		if ok {
+		if res {
 			switch i {
 			case 0:
 				r.rows = r.rows[1:]

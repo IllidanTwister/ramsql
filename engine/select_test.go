@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/proullon/ramsql/engine/log"
+	"github.com/IllidanTwister/ramsql/engine/log"
 )
 
 func TestSelectNoOp(t *testing.T) {
@@ -70,7 +70,12 @@ func TestSelect(t *testing.T) {
 		t.Fatalf("Cannot insert into table account: %s", err)
 	}
 
-	rows, err := db.Query("SELECT * FROM account WHERE email = $1", "foo@bar.com")
+	_, err = db.Query("SELECT * FROM account WHERE email = $1", "foo@bar.com")
+	if err != nil {
+		t.Fatalf("sql.Query error : %s", err)
+	}
+
+	rows, err := db.Query("SELECT * FROM account WHERE (email = $1)", "foo@bar.com")
 	if err != nil {
 		t.Fatalf("sql.Query error : %s", err)
 	}

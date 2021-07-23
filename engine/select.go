@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/proullon/ramsql/engine/log"
-	"github.com/proullon/ramsql/engine/parser"
-	"github.com/proullon/ramsql/engine/protocol"
+	"github.com/IllidanTwister/ramsql/engine/log"
+	"github.com/IllidanTwister/ramsql/engine/parser"
+	"github.com/IllidanTwister/ramsql/engine/protocol"
 )
 
 func attributeExistsInTable(e *Engine, attr string, table string) error {
@@ -331,6 +331,10 @@ func and(e *Engine, left []*parser.Decl, right []*parser.Decl, tableName string)
 	return p, nil
 }
 
+func bracket(e *Engine, decl *parser.Decl, fromTableName string) (PredicateLinker, error) {
+	return whereExecutor2(e, decl.Decl, fromTableName)
+}
+
 func whereExecutor2(e *Engine, decl []*parser.Decl, fromTableName string) (PredicateLinker, error) {
 
 	for i, cond := range decl {
@@ -360,6 +364,10 @@ func whereExecutor2(e *Engine, decl []*parser.Decl, fromTableName string) (Predi
 	// 1 PREDICATE
 	if cond.Lexeme == "1" {
 		return &TruePredicate, nil
+	}
+
+	if cond.Token == parser.BracketOpeningToken {
+		return bracket(e, cond, fromTableName)
 	}
 
 	switch cond.Decl[0].Token {
@@ -482,6 +490,16 @@ func whereExecutor(whereDecl *parser.Decl, fromTableName string) ([]Predicate, e
 			}
 			p.LeftValue.table = tableName
 			predicates = append(predicates, p)
+			continue
+		}
+
+		// Handle bracket
+		if cond.Decl[0].Token == parser.BracketOpeningToken {
+			bracketPredicates, err := whereExecutor(cond.Decl[0], fromTableName)
+			if err != nil {
+				return nil, err
+			}
+			predicates = append(predicates, bracketPredicates...)
 			continue
 		}
 

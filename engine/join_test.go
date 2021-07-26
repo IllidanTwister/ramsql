@@ -21,7 +21,7 @@ func TestJoinOrderBy(t *testing.T) {
 	init := []string{
 		`CREATE TABLE user (id BIGSERIAL, name TEXT)`,
 		`CREATE TABLE address (id BIGSERIAL, user_id INT, value TEXT)`,
-		`INSERT INTO user (name) VALUES ($$riri$$)`,
+		"INSERT INTO user (`name`) VALUES ($$riri$$)",
 		`INSERT INTO user (name) VALUES ($$fifi$$)`,
 		`INSERT INTO user (name) VALUES ($$loulou$$)`,
 		`INSERT INTO address (user_id, value) VALUES (1, 'rue du puit')`,

@@ -791,7 +791,7 @@ func (p *parser) parseListElement() (*Decl, error) {
 		return v, nil
 	}
 
-	if p.is(SimpleQuoteToken) || p.is(DoubleQuoteToken) {
+	if p.is(SimpleQuoteToken) || p.is(DoubleQuoteToken) || p.is(BacktickToken) {
 		quoted = true
 		p.next()
 	}
@@ -803,7 +803,7 @@ func (p *parser) parseListElement() (*Decl, error) {
 	}
 
 	if quoted {
-		if _, err := p.consumeToken(SimpleQuoteToken, DoubleQuoteToken); err != nil {
+		if _, err := p.consumeToken(SimpleQuoteToken, DoubleQuoteToken, BacktickToken); err != nil {
 			return nil, err
 		}
 	}

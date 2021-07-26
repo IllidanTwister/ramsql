@@ -2,10 +2,11 @@ package engine
 
 import (
 	"fmt"
+	"github.com/IllidanTwister/ramsql/engine/log"
+	"strconv"
 	"strings"
 	"time"
 
-	"github.com/IllidanTwister/ramsql/engine/log"
 	"github.com/IllidanTwister/ramsql/engine/parser"
 	"github.com/IllidanTwister/ramsql/engine/protocol"
 )
@@ -83,37 +84,90 @@ func updateExecutor(e *Engine, updateDecl *parser.Decl, conn protocol.EngineConn
 					|-> =
 					|-> roger@gmail.com
 */
-func setExecutor(setDecl *parser.Decl) (map[string]interface{}, error) {
+func setExecutor(setDecl *parser.Decl) (map[string]*parser.Decl, error) {
 
-	values := make(map[string]interface{})
+	values := make(map[string]*parser.Decl)
 
 	for _, attr := range setDecl.Decl {
-		values[attr.Lexeme] = attr.Decl[1].Lexeme
+		if attr.Decl[0].Token != parser.EqualityToken {
+			return nil, fmt.Errorf("setExecutor not Equality after arrtibute")
+		}
+		values[attr.Lexeme] = attr.Decl[1]
 	}
 
 	return values, nil
 }
 
-func updateValues(r *Relation, row int, values map[string]interface{}) error {
+func updateValues(r *Relation, row int, values map[string]*parser.Decl) error {
+	attributeMap := make(map[string]interface{})
+	for i, attribute := range r.table.attributes {
+		attributeMap[attribute.name] = r.rows[row].Values[i]
+	}
+
 	for i := range r.table.attributes {
 		val, ok := values[r.table.attributes[i].name]
 		if !ok {
 			continue
 		}
 		log.Debug("Type of '%s' is '%s'\n", r.table.attributes[i].name, r.table.attributes[i].typeName)
-		switch strings.ToLower(r.table.attributes[i].typeName) {
-		case "timestamp", "localtimestamp":
-			s, ok := val.(string)
-			if ok && (s == "current_timestamp" || s == "now()") {
-				val = time.Now()
+		var result interface{}
+		var err error
+		if val.Token == parser.AttributeToken {
+			result, err = getAttributeValue(val, attributeMap)
+			if err != nil {
+				return err
 			}
-			// format time.Time into parsable string
-			if t, ok := val.(time.Time); ok {
-				val = t.Format(parser.DateLongFormat)
+		} else {
+			switch strings.ToLower(r.table.attributes[i].typeName) {
+			case "timestamp", "localtimestamp":
+				if val.Lexeme == "current_timestamp" || val.Lexeme == "now()" {
+					result = time.Now().Format(parser.DateLongFormat)
+				}
+			default:
+				result = val.Lexeme
 			}
 		}
-		r.rows[row].Values[i] = fmt.Sprintf("%v", val)
+		r.rows[row].Values[i] = fmt.Sprintf("%v", result)
 	}
 
 	return nil
+}
+
+func getAttributeValue(val *parser.Decl, attributeMap map[string]interface{}) (interface{}, error) {
+	var result string
+	if val.Token == parser.AttributeToken {
+		if attributeValue, ok := attributeMap[val.Lexeme]; !ok {
+			return nil, fmt.Errorf("setAttributeValue error, no attribute of %s find", val.Lexeme)
+		} else {
+			result = attributeValue.(string)
+		}
+	} else {
+		result = val.Lexeme
+	}
+	if val.Decl != nil && len(val.Decl) > 1 {
+		nextValue, err := getAttributeValue(val.Decl[1], attributeMap)
+		if err != nil {
+			return nil, err
+		}
+		nextValueStr := nextValue.(string)
+		resultInt, err1 := strconv.Atoi(result)
+		nextValueInt, err2 := strconv.Atoi(nextValueStr)
+		switch val.Decl[0].Token {
+		case parser.AddToken:
+			if err1 == nil && err2 == nil {
+				result = strconv.Itoa(resultInt + nextValueInt)
+			} else {
+				result = result + nextValueStr
+			}
+		case parser.MinusToken:
+			if err1 == nil && err2 == nil {
+				result = strconv.Itoa(resultInt - nextValueInt)
+			} else {
+				return nil, fmt.Errorf("operation '-' between strings")
+			}
+		default:
+			return nil, fmt.Errorf("unkonwn operation Token %v", val.Decl[1].Token)
+		}
+	}
+	return result, nil
 }

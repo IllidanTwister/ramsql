@@ -703,11 +703,16 @@ func (p *parser) parseValue() (*Decl, error) {
 	debug("parseValue")
 	defer debug("~parseValue")
 	quoted := false
+	isAttribute := false
 
-	if p.is(SimpleQuoteToken) || p.is(DoubleQuoteToken) {
+	if p.is(SimpleQuoteToken, DoubleQuoteToken, BacktickToken) {
 		quoted = true
 		debug("value %v is quoted!", p.tokens[p.index])
-		_, err := p.consumeToken(SimpleQuoteToken, DoubleQuoteToken)
+		if p.is(BacktickToken) {
+			isAttribute = true
+			debug("value %v is isAttribute!", p.tokens[p.index])
+		}
+		_, err := p.consumeToken(SimpleQuoteToken, DoubleQuoteToken, BacktickToken)
 		if err != nil {
 			return nil, err
 		}
@@ -718,15 +723,31 @@ func (p *parser) parseValue() (*Decl, error) {
 		debug("parseValue: Wasn't expecting %v\n", p.tokens[p.index])
 		return nil, err
 	}
+	if isAttribute {
+		valueDecl.Token = AttributeToken
+	}
 	log.Debug("Parsing value %v !\n", valueDecl)
 
 	if quoted {
 		log.Debug("consume quote %v\n", p.tokens[p.index])
-		_, err := p.consumeToken(SimpleQuoteToken, DoubleQuoteToken)
+		_, err := p.consumeToken(SimpleQuoteToken, DoubleQuoteToken, BacktickToken)
 		if err != nil {
 			debug("uuuh, wasn't a quote")
 			return nil, err
 		}
+	}
+
+	if p.is(AddToken, MinusToken) {
+		operateToken, err := p.consumeToken(AddToken, MinusToken)
+		if err != nil {
+			return nil, err
+		}
+		valueDecl.Add(operateToken)
+		operateObjToken, err := p.parseValue()
+		if err != nil {
+			return nil, err
+		}
+		valueDecl.Add(operateObjToken)
 	}
 
 	return valueDecl, nil

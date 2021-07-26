@@ -166,3 +166,57 @@ func TestUpdateNotNull(t *testing.T) {
 	}
 
 }
+
+func TestUpdateVersionPlusOne(t *testing.T) {
+	log.UseTestLogger(t)
+
+	db, err := sql.Open("ramsql", "TestUpdateVersionPlusOne")
+	if err != nil {
+		t.Fatalf("sql.Open : Error : %s\n", err)
+	}
+	defer db.Close()
+
+	_, err = db.Exec("CREATE TABLE account (id INT AUTOINCREMENT, name TEXT, version bigint default 1)")
+	if err != nil {
+		t.Fatalf("sql.Exec: Error: %s\n", err)
+	}
+
+	_, err = db.Exec("INSERT INTO account (`name`) VALUES ('afei')")
+	if err != nil {
+		t.Fatalf("Cannot insert into table account: %s", err)
+	}
+
+	_, err = db.Exec("INSERT INTO account (`name`) VALUES ('luogen')")
+	if err != nil {
+		t.Fatalf("Cannot insert into table account: %s", err)
+	}
+
+	_, err = db.Exec("UPDATE `account` SET `name` = 'afei3', `version` = `version` + 1 " +
+		"WHERE `id` = 1 and `version` = 1")
+	if err != nil {
+		t.Fatalf("Cannot update table account: %s", err)
+	}
+
+	_, err = db.Exec("UPDATE `account` SET `name` = 'afei2', `version` = `version` + 1 " +
+		"WHERE `id` = 1 and `version` = 1")
+	if err != nil {
+		t.Fatalf("Cannot update table account: %s", err)
+	}
+
+	row := db.QueryRow("SELECT * FROM `account` WHERE `id` = 1")
+	if row == nil {
+		t.Fatalf("sql.Query failed")
+	}
+
+	var name string
+	var id int
+	var version int
+	err = row.Scan(&id, &name, &version)
+	if err != nil {
+		t.Fatalf("row.Scan: %s", err)
+	}
+
+	if name != "afei3" {
+		t.Fatalf("Expected name 'afei3', got '%s'", name)
+	}
+}

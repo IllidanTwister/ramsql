@@ -21,6 +21,8 @@ const (
 	LessOrEqualToken
 	GreaterOrEqualToken
 	BacktickToken
+	AddToken
+	MinusToken
 
 	// QuoteToken
 
@@ -88,6 +90,7 @@ const (
 	StringToken
 	NumberToken
 	DateToken
+	AttributeToken
 )
 
 // Token struct holds token id and it's lexeme
@@ -130,6 +133,8 @@ func (l *lexer) lex(instruction []byte) ([]Token, error) {
 	matchers = append(matchers, l.MatchLeftDipleToken)
 	matchers = append(matchers, l.MatchRightDipleToken)
 	matchers = append(matchers, l.MatchBacktickToken)
+	matchers = append(matchers, l.MatchAddToken)
+	matchers = append(matchers, l.MatchMinusToken)
 	// First order Matcher
 	matchers = append(matchers, l.MatchCreateToken)
 	matchers = append(matchers, l.MatchSelectToken)
@@ -489,6 +494,14 @@ func (l *lexer) MatchGreaterOrEqualToken() bool {
 
 func (l *lexer) MatchBacktickToken() bool {
 	return l.MatchSingle('`', BacktickToken)
+}
+
+func (l *lexer) MatchAddToken() bool {
+	return l.MatchSingle('+', AddToken)
+}
+
+func (l *lexer) MatchMinusToken() bool {
+	return l.MatchSingle('-', MinusToken)
 }
 
 // 2015-09-10 14:03:09.444695269 +0200 CEST);

@@ -183,13 +183,17 @@ func replaceArgumentsODBC(query string, args []driver.Value) string {
 
 	queryParts := strings.Split(query, "?")
 	finalQuery = queryParts[0]
-	for i := range args {
-		arg := fmt.Sprintf("%v", args[i])
-		_, ok := args[i].(string)
-		if ok && !strings.HasSuffix(query, "'") {
-			arg = "$$" + arg + "$$"
+	for i, arg := range args {
+		argStr := fmt.Sprintf("%v", arg)
+		if arg == nil {
+			argStr = "null"
+		} else {
+			_, ok := args[i].(string)
+			if ok && !strings.HasSuffix(query, "'") {
+				argStr = "$$" + argStr + "$$"
+			}
 		}
-		finalQuery += arg
+		finalQuery += argStr
 		finalQuery += queryParts[i+1]
 	}
 

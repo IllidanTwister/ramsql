@@ -21,13 +21,18 @@ func (p *parser) parseDrop() (*Instruction, error) {
 	}
 	trDecl.Add(tableDecl)
 
-	// Should be a table name
-	nameDecl, err := p.parseQuotedToken()
-	if err != nil {
-		log.Debug("UH ?\n")
-		return nil, err
+	//support 'drop table *' for test clear
+	if p.is(StarToken) {
+		starDecl := NewDecl(p.cur())
+		tableDecl.Add(starDecl)
+	} else {
+		// Should be a table name
+		nameDecl, err := p.parseQuotedToken()
+		if err != nil {
+			log.Debug("UH ?\n")
+			return nil, err
+		}
+		tableDecl.Add(nameDecl)
 	}
-	tableDecl.Add(nameDecl)
-
 	return i, nil
 }

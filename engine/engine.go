@@ -92,6 +92,12 @@ func (e *Engine) drop(name string) {
 	e.Unlock()
 }
 
+func (e *Engine) dropAll() {
+	e.Lock()
+	e.relations = make(map[string]*Relation)
+	e.Unlock()
+}
+
 func (e *Engine) listen() {
 	newConnectionChannel := make(chan protocol.EngineConn)
 

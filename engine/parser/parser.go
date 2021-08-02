@@ -527,7 +527,7 @@ func (p *parser) parseAttribute() (*Decl, error) {
 
 	if quoted {
 		// Check there is a closing quote
-		if _, err := p.mustHaveNext(quoteToken); err != nil {
+		if _, err := p.parserNext(quoteToken); err != nil {
 			log.Debug("parseAttribute: Missing closing quote")
 			return nil, err
 		}
@@ -559,11 +559,12 @@ func (p *parser) parseAttribute() (*Decl, error) {
 // parseQuotedToken parse a token of the form
 // table
 // "table"
+// `table`
 func (p *parser) parseQuotedToken() (*Decl, error) {
 	quoted := false
 	quoteToken := DoubleQuoteToken
 
-	if p.is(DoubleQuoteToken) || p.is(BacktickToken) {
+	if p.is(DoubleQuoteToken, BacktickToken) {
 		quoted = true
 		quoteToken = p.cur().Token
 		if err := p.next(); err != nil {
@@ -580,7 +581,7 @@ func (p *parser) parseQuotedToken() (*Decl, error) {
 	if quoted {
 
 		// Check there is a closing quote
-		if _, err := p.mustHaveNext(quoteToken); err != nil {
+		if _, err := p.parserNext(quoteToken); err != nil {
 			return nil, err
 		}
 	}
@@ -880,26 +881,26 @@ func (p *parser) isNext(tokenTypes ...int) (t Token, err error) {
 	return t, p.syntaxError()
 }
 
-func (p *parser) mustHaveNext(tokenTypes ...int) (t Token, err error) {
+func (p *parser) parserNext(tokenTypes ...int) (t Token, err error) {
 
 	if !p.hasNext() {
-		debug("parser.mustHaveNext: has no next")
+		debug("parser.parserNext: has no next")
 		return t, p.syntaxError()
 	}
 
 	if err = p.next(); err != nil {
-		debug("parser.mustHaveNext: error getting next")
+		debug("parser.parserNext: error getting next")
 		return t, err
 	}
 
-	debug("parser.mustHaveNext %v", tokenTypes)
+	debug("parser.parserNext %v", tokenTypes)
 	for _, tokenType := range tokenTypes {
 		if p.is(tokenType) {
 			return p.tokens[p.index], nil
 		}
 	}
 
-	debug("parser.mustHaveNext: Next (%v) is not among %v", p.cur(), tokenTypes)
+	debug("parser.parserNext: Next (%v) is not among %v", p.cur(), tokenTypes)
 	return t, p.syntaxError()
 }
 

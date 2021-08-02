@@ -17,14 +17,17 @@ func dropExecutor(e *Engine, dropDecl *parser.Decl, conn protocol.EngineConn) er
 		return fmt.Errorf("unexpected drop arguments")
 	}
 
-	table := dropDecl.Decl[0].Decl[0].Lexeme
-
-	r := e.relation(table)
-	if r == nil {
-		return fmt.Errorf("relation '%s' not found", table)
+	if dropDecl.Decl[0].Decl[0].Token == parser.StarToken {
+		//drop all table
+		e.dropAll()
+	} else {
+		table := dropDecl.Decl[0].Decl[0].Lexeme
+		r := e.relation(table)
+		if r == nil {
+			return fmt.Errorf("relation '%s' not found", table)
+		}
+		e.drop(table)
 	}
-
-	e.drop(table)
 
 	return conn.WriteResult(0, 1)
 }

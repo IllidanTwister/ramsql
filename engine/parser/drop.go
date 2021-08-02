@@ -23,7 +23,10 @@ func (p *parser) parseDrop() (*Instruction, error) {
 
 	//support 'drop table *' for test clear
 	if p.is(StarToken) {
-		starDecl := NewDecl(p.cur())
+		starDecl, err := p.consumeToken(StarToken)
+		if err != nil {
+			return nil, err
+		}
 		tableDecl.Add(starDecl)
 	} else {
 		// Should be a table name

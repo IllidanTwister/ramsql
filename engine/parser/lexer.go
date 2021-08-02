@@ -39,7 +39,6 @@ const (
 	InsertToken
 	UpdateToken
 	DeleteToken
-	ExplainToken
 	TruncateToken
 	DropToken
 	GrantToken

@@ -50,7 +50,7 @@ func TestDropAll(t *testing.T) {
 		t.Fatalf("%s", err)
 	}
 
-	_, err = db.Exec("DROP TABLE *")
+	_, err = db.Exec("DROP TABLE *;")
 	if err != nil {
 		t.Fatalf("cannot drop table: %s", err)
 	}

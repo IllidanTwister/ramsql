@@ -95,42 +95,36 @@ func (p *parser) parse(tokens []Token) ([]Instruction, error) {
 				return nil, err
 			}
 			p.i = append(p.i, *i)
-			break
 		case SelectToken:
 			i, err := p.parseSelect(tokens)
 			if err != nil {
 				return nil, err
 			}
 			p.i = append(p.i, *i)
-			break
 		case InsertToken:
 			i, err := p.parseInsert()
 			if err != nil {
 				return nil, err
 			}
 			p.i = append(p.i, *i)
-			break
 		case UpdateToken:
 			i, err := p.parseUpdate()
 			if err != nil {
 				return nil, err
 			}
 			p.i = append(p.i, *i)
-			break
 		case DeleteToken:
 			i, err := p.parseDelete()
 			if err != nil {
 				return nil, err
 			}
 			p.i = append(p.i, *i)
-			break
 		case TruncateToken:
 			i, err := p.parseTruncate()
 			if err != nil {
 				return nil, err
 			}
 			p.i = append(p.i, *i)
-			break
 		case DropToken:
 			log.Debug("HEY DROP HERE !\n")
 			i, err := p.parseDrop()
@@ -138,9 +132,6 @@ func (p *parser) parse(tokens []Token) ([]Instruction, error) {
 				return nil, err
 			}
 			p.i = append(p.i, *i)
-			break
-		case ExplainToken:
-			break
 		case GrantToken:
 			i := &Instruction{}
 			i.Decls = append(i.Decls, NewDecl(Token{Token: GrantToken}))

@@ -34,11 +34,6 @@ func TestDropAll(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%s", err)
 	}
-	db.Close()
-	db, err = sql.Open("ramsql", "TestDropAll")
-	if err != nil {
-		t.Fatalf("%s", err)
-	}
 	defer db.Close()
 
 	_, err = db.Exec("CREATE TABLE account (id INT, email TEXT)")

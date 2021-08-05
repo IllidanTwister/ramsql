@@ -71,7 +71,7 @@ func parseAttribute(decl *parser.Decl) (Attribute, error) {
 
 	}
 
-	if strings.ToLower(attr.typeName) == "bigserial" {
+	if strings.ToLower(attr.typeName) == "bigserial" || strings.ToLower(attr.typeName) == "serial" {
 		attr.autoIncrement = true
 	}
 

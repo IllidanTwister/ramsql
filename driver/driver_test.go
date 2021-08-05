@@ -236,7 +236,7 @@ func TestBatch(t *testing.T) {
 	log.UseTestLogger(t)
 
 	batch := []string{
-		`CREATE TABLE address (id BIGSERIAL PRIMARY KEY, street TEXT, street_number INT);`,
+		`CREATE TABLE address (id SERIAL PRIMARY KEY, street TEXT, street_number INT);`,
 		`CREATE TABLE user_addresses (address_id INT, user_id INT);`,
 		`INSERT INTO address (street, street_number) VALUES ('rue victor hugo', 32);`,
 		`INSERT INTO address (street, street_number) VALUES ('boulevard de la république', 23);`,

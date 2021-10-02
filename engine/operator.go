@@ -5,6 +5,7 @@ import (
 	"github.com/IllidanTwister/ramsql/engine/log"
 	"github.com/IllidanTwister/ramsql/engine/parser"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -162,12 +163,7 @@ func lessThanOperator(leftValue Value, rightValue Value) bool {
 
 // EqualityOperator checks if given value are equal
 func equalityOperator(leftValue Value, rightValue Value) bool {
-
-	if fmt.Sprintf("%v", leftValue.v) == rightValue.lexeme {
-		return true
-	}
-
-	return false
+	return equalityValue(leftValue.v, rightValue.lexeme)
 }
 
 // TrueOperator always returns true
@@ -185,11 +181,27 @@ func inOperator(leftValue Value, rightValue Value) bool {
 
 	for i := range values {
 		log.Debug("InOperator: Testing %v against %s", leftValue.v, values[i])
-		if fmt.Sprintf("%v", leftValue.v) == values[i] {
+		if equalityValue(leftValue.v, values[i]) {
 			return true
 		}
 	}
 
+	return false
+}
+
+func equalityValue(value interface{}, lexeme string) bool {
+	if fmt.Sprintf("%v", value) == lexeme {
+		return true
+	}
+	if strings.EqualFold(lexeme, "false") && fmt.Sprintf("%v", value) == "0" {
+		return true
+	} else if strings.EqualFold(lexeme, "true") && fmt.Sprintf("%v", value) == "1" {
+		return true
+	} else if strings.EqualFold(fmt.Sprintf("%v", value), "false") && lexeme == "0" {
+		return true
+	} else if strings.EqualFold(fmt.Sprintf("%v", value), "true") && lexeme == "1" {
+		return true
+	}
 	return false
 }
 

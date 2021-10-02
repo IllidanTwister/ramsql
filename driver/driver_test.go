@@ -59,17 +59,17 @@ func TestInsertTable(t *testing.T) {
 	}
 	defer db.Close()
 
-	_, err = db.Exec("CREATE TABLE account (id INT, email TEXT)")
+	_, err = db.Exec("CREATE TABLE account (id INT, email TEXT, deleted bool)")
 	if err != nil {
 		t.Fatalf("sql.Exec: Error: %s\n", err)
 	}
 
-	res, err := db.Exec("INSERT INTO account ('id', 'email') VALUES (1, 'foo@bar.com')")
+	res, err := db.Exec("INSERT INTO account ('id', 'email', 'deleted') VALUES (1, 'foo@bar.com', false)")
 	if err != nil {
 		t.Fatalf("Cannot insert into table account: %s", err)
 	}
 
-	res, err = db.Exec("INSERT INTO account ('id', 'email') VALUES (2, 'roger@gmail.com')")
+	res, err = db.Exec("INSERT INTO account ('id', 'email', 'deleted') VALUES (2, 'roger@gmail.com', true)")
 	if err != nil {
 		t.Fatalf("Cannot insert into table account: %s", err)
 	}

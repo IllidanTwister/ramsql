@@ -13,7 +13,12 @@ func TestSelectNoOp(t *testing.T) {
 	if err != nil {
 		t.Fatalf("sql.Open : Error : %s\n", err)
 	}
-	defer db.Close()
+	defer func() {
+		err = db.Close()
+		if err != nil {
+			t.Fatalf("sql.Close : Error : %s\n", err)
+		}
+	}()
 
 	batch := []string{
 		`CREATE TABLE account (id BIGSERIAL, email TEXT)`,
@@ -53,7 +58,12 @@ func TestSelect(t *testing.T) {
 	if err != nil {
 		t.Fatalf("sql.Open : Error : %s\n", err)
 	}
-	defer db.Close()
+	defer func() {
+		err = db.Close()
+		if err != nil {
+			t.Fatalf("sql.Close : Error : %s\n", err)
+		}
+	}()
 
 	_, err = db.Exec("CREATE TABLE account (id INT, email TEXT)")
 	if err != nil {
@@ -109,12 +119,78 @@ func TestSelect(t *testing.T) {
 	if email != "foo@bar.com" {
 		t.Fatalf("Expected email = <foo@bar.com>, got <%s>", email)
 	}
+}
 
-	err = db.Close()
+func TestSelectBool(t *testing.T) {
+	log.UseTestLogger(t)
+	db, err := sql.Open("ramsql", "TestSelectBool")
 	if err != nil {
-		t.Fatalf("sql.Close : Error : %s\n", err)
+		t.Fatalf("sql.Open : Error : %s\n", err)
+	}
+	defer func() {
+		err = db.Close()
+		if err != nil {
+			t.Fatalf("sql.Close : Error : %s\n", err)
+		}
+	}()
+
+	_, err = db.Exec("CREATE TABLE account (id INT, email TEXT, deleted bool)")
+	if err != nil {
+		t.Fatalf("sql.Exec: Error: %s\n", err)
 	}
 
+	_, err = db.Exec("INSERT INTO account ('id', 'email', 'deleted') VALUES (2, 'bar@bar.com', true)")
+	if err != nil {
+		t.Fatalf("Cannot insert into table account: %s", err)
+	}
+
+	_, err = db.Exec("INSERT INTO account ('id', 'email', 'deleted') VALUES (1, 'foo@bar.com', false)")
+	if err != nil {
+		t.Fatalf("Cannot insert into table account: %s", err)
+	}
+
+	_, err = db.Query("SELECT * FROM account WHERE deleted = $1", "true")
+	if err != nil {
+		t.Fatalf("sql.Query error : %s", err)
+	}
+
+	rows, err := db.Query("SELECT * FROM account WHERE (deleted = $1)", "false")
+	if err != nil {
+		t.Fatalf("sql.Query error : %s", err)
+	}
+	columns, err := rows.Columns()
+	if err != nil {
+		t.Fatalf("rows.Column : %s", err)
+		return
+	}
+	if len(columns) != 3 {
+		t.Fatalf("Expected 3 columns, got %d", len(columns))
+	}
+
+	row := db.QueryRow("SELECT * FROM account WHERE (deleted = $1)", 0)
+	if row == nil {
+		t.Fatalf("sql.QueryRow error")
+	}
+
+	var email string
+	var id int
+	var deleted bool
+	err = row.Scan(&id, &email, &deleted)
+	if err != nil {
+		t.Fatalf("row.Scan: %s", err)
+	}
+
+	if id != 1 {
+		t.Fatalf("Expected id = 1, got %d", id)
+	}
+
+	if email != "foo@bar.com" {
+		t.Fatalf("Expected email = <foo@bar.com>, got <%s>", email)
+	}
+
+	if deleted {
+		t.Fatalf("Expected deleted = false, got <%v>", deleted)
+	}
 }
 
 func TestCount(t *testing.T) {
@@ -123,7 +199,12 @@ func TestCount(t *testing.T) {
 	if err != nil {
 		t.Fatalf("sql.Open : Error : %s\n", err)
 	}
-	defer db.Close()
+	defer func() {
+		err = db.Close()
+		if err != nil {
+			t.Fatalf("sql.Close : Error : %s\n", err)
+		}
+	}()
 
 	batch := []string{
 		`CREATE TABLE account (id BIGSERIAL, email TEXT)`,
@@ -154,5 +235,4 @@ func TestCount(t *testing.T) {
 	if err == nil {
 		t.Fatalf("Expected an error from a non existing attribute")
 	}
-
 }

@@ -115,27 +115,3 @@ func (p *Predicate) Eval(row virtualRow) (bool, error) {
 
 	return p.Operator(p.LeftValue, p.RightValue), nil
 }
-
-// Evaluate is deprecated (see Eval). It calls operators and use tuple as operand
-// TODO: Delete that
-func (p *Predicate) Evaluate(t *Tuple, table *Table) (bool, error) {
-
-	if p.True {
-		return true, nil
-	}
-
-	// Find left
-	var i = 0
-	lenTable := len(table.attributes)
-	for i = 0; i < lenTable; i++ {
-		if table.attributes[i].name == p.LeftValue.lexeme {
-			break
-		}
-	}
-	if i == lenTable {
-		return false, fmt.Errorf("Attribute [%s] not found in table [%s]", p.LeftValue.lexeme, table.name)
-	}
-
-	p.LeftValue.v = t.Values[i]
-	return p.Operator(p.LeftValue, p.RightValue), nil
-}

@@ -710,7 +710,7 @@ func (p *parser) parseValue() (*Decl, error) {
 		}
 	}
 
-	valueDecl, err := p.consumeToken(StringToken, NumberToken, DateToken, NowToken)
+	valueDecl, err := p.consumeToken(StringToken, NumberToken, DateToken, NowToken, TrueToken, FalseToken)
 	if err != nil {
 		debug("parseValue: Wasn't expecting %v\n", p.tokens[p.index])
 		return nil, err
